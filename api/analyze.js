@@ -5,17 +5,13 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   const { type, ticker } = req.query;
-  const FMP_KEY = process.env.FMP_API_KEY;
-  const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
 
   if (type === 'profile') {
-    const [p, q, i, r] = await Promise.all([
-      fetch(`https://financialmodelingprep.com/api/v3/profile/${ticker}?apikey=${FMP_KEY}`),
-      fetch(`https://financialmodelingprep.com/api/v3/quote/${ticker}?apikey=${FMP_KEY}`),
-      fetch(`https://financialmodelingprep.com/api/v3/income-statement/${ticker}?limit=2&apikey=${FMP_KEY}`),
-      fetch(`https://financialmodelingprep.com/api/v3/ratios-ttm/${ticker}?apikey=${FMP_KEY}`)
-    ]);
-    const data = await Promise.all([p.json(), q.json(), i.json(), r.json()]);
+    const url = `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${ticker}?modules=assetProfile,financialData,defaultKeyStatistics,incomeStatementHistory,summaryDetail`;
+    const r = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0' }
+    });
+    const data = await r.json();
     return res.status(200).json(data);
   }
 
@@ -24,7 +20,7 @@ export default async function handler(req, res) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': ANTHROPIC_KEY,
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify(req.body)
